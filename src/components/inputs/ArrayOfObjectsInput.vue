@@ -7,6 +7,38 @@
     :header-class="`${!isRoot ? 'bg-secondary' : 'bg-primary'} text-white`"
     dense
   >
+    <template #header>
+      <q-item-section avatar>
+        <q-icon
+          v-if="attribute.definition !== null"
+          color="accent"
+          name="fa-solid fa-lock"
+          :title="$t('plugin.component.attribute.referenced')"
+          size="xs"
+        />
+        <q-icon
+          v-else
+          color="accent"
+          name="fa-solid fa-lock-open"
+          :title="$t('plugin.component.attribute.unreferenced')"
+          size="xs"
+        />
+      </q-item-section>
+      <q-item-section>
+        {{ attribute.definition?.displayName || attribute.name }}
+      </q-item-section>
+      <q-item-section
+        v-if="hasError"
+        side
+      >
+        <q-icon
+          color="negative"
+          name="fa-solid fa-circle-exclamation"
+          size="xs"
+          :title="$t('errors.plugin.object')"
+        />
+      </q-item-section>
+    </template>
     <div class="q-pa-md">
       <div
         v-if="attribute.value?.length === 0"
@@ -64,11 +96,10 @@ import {
   ref,
   watch,
 } from 'vue';
-import { ComponentAttribute } from 'leto-modelizer-plugin-core';
 import AttributesList from 'src/components/inputs/AttributesList.vue';
 
 const emit = defineEmits([
-  'update:model-value',
+  'update:attribute-value',
 ]);
 
 const props = defineProps({
@@ -118,7 +149,7 @@ function getSubAttributes(attribute) {
       if (attr) {
         attributes.push(attr);
       } else {
-        attributes.push(new ComponentAttribute({
+        attributes.push(props.component.createAttribute({
           name: definition.name,
           type: definition.type,
           definition,
@@ -126,7 +157,6 @@ function getSubAttributes(attribute) {
       }
     });
 
-  console.log(attributes);
   return [
     ...attributes,
     ...attributeValue.filter(({ definition }) => !definition),
@@ -139,14 +169,17 @@ function getSubAttributes(attribute) {
 function addObject() {
   const objects = props.attribute.value || [];
   const objectDefinition = props.attribute.definition.itemDefinition[0];
-  const newObj = new ComponentAttribute({
+  const newObj = props.component.createAttribute({
     name: objectDefinition.name,
     type: 'Object',
     definition: objectDefinition,
     value: [],
   });
   objects.push(newObj);
-  emit('update:model-value', objects);
+  emit('update:attribute-value', {
+    attributeName: props.attribute.name,
+    newValue: objects,
+  });
 }
 
 /**
@@ -156,8 +189,11 @@ function addObject() {
  */
 function updateObject(index, event) {
   const objects = props.attribute.value || [];
-  objects[index].value = event.attributes.filter(({ value }) => value);
-  emit('update:model-value', objects);
+  objects[index].value = event.attributes;
+  emit('update:attribute-value', {
+    attributeName: props.attribute.name,
+    newValue: objects,
+  });
 }
 
 /**
@@ -167,7 +203,10 @@ function updateObject(index, event) {
 function removeObject(index) {
   const objects = props.attribute.value || [];
   objects.splice(index, 1);
-  emit('update:model-value', objects);
+  emit('update:attribute-value', {
+    attributeName: props.attribute.name,
+    newValue: objects,
+  });
 }
 
 watch(() => hasError.value, () => {
