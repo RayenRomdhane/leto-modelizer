@@ -115,6 +115,9 @@ function getAttributeType(attribute) {
   if (attribute.definition?.rules.values && attribute.definition?.type !== 'Array') {
     return 'Select';
   }
+  if (attribute.definition?.itemType === 'Object' && attribute.definition?.type === 'Array') {
+    return 'ArrayOfObjects';
+  }
 
   return attribute.definition?.type || attribute.type;
 }

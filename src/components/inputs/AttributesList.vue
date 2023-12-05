@@ -35,6 +35,24 @@
         @click="addAttribute"
       />
     </q-item>
+    <!-- Attributes ArrayOfObjects -->
+    <q-item
+      v-for="attribute in data.localAttributes.filter(({ type, definition }) => type === 'Array'
+        && definition?.itemType === 'Object')"
+      :key="attribute.name"
+      class="q-pa-none"
+      dense
+    >
+      <array-of-objects-input
+        :attribute="{ value: attribute.value, definition: attribute.definition }"
+        :component="component"
+        :plugin="plugin"
+        :is-root="isRoot"
+        :full-name="`${fullName}.${attribute.name}`"
+        :current-error="currentError"
+        @update:model-value="updateModelValue"
+      />
+    </q-item>
     <!-- Attributes Object -->
     <q-item
       v-for="attribute in data.localAttributes.filter(({ type }) => type === 'Object')"
@@ -57,9 +75,12 @@
 </template>
 
 <script setup>
-import { reactive, toRef, watch } from 'vue';
+import {
+  reactive, toRef, watch,
+} from 'vue';
 import InputWrapper from 'components/inputs/InputWrapper.vue';
 import ObjectInput from 'src/components/inputs/ObjectInput.vue';
+import ArrayOfObjectsInput from 'src/components/inputs/ArrayOfObjectsInput.vue';
 
 const emit = defineEmits([
   'update:attributes',
@@ -115,12 +136,14 @@ function getNewAttributeName(index = 1) {
  * Add a new attribute without definition and emit event to update parent attributes list.
  */
 function addAttribute() {
+  console.log('test');
   data.localAttributes.push({
     name: getNewAttributeName(),
     value: '',
     definition: null,
     type: 'String',
   });
+  console.log('test2', data.localAttributes);
 
   emit('update:attributes', {
     attributes: data.localAttributes,
