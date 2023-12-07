@@ -189,7 +189,7 @@ function addObject() {
  */
 function updateObject(index, event) {
   const objects = props.attribute.value || [];
-  objects[index].value = event.attributes;
+  objects[index].value = event.attributes.filter(({ definition, value }) => !definition || value);
   emit('update:attribute-value', {
     attributeName: props.attribute.name,
     newValue: objects,
