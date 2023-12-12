@@ -36,15 +36,16 @@
         @click="addAttribute"
       />
     </q-item>
-    <!-- Attributes ArrayOfObjects -->
+    <!-- Attribute Object/ArrayOfObjects -->
     <q-item
-      v-for="attribute in data.localAttributes.filter(({ type, definition }) => type === 'Array'
-        && definition?.itemType === 'Object')"
+      v-for="attribute in data.localAttributes.filter(({ type, definition }) => type === 'Object'
+        || (type === 'Array' && definition?.itemType === 'Object') )"
       :key="attribute.name"
       class="q-pa-none"
       dense
     >
-      <array-of-objects-input
+      <object-input
+        v-if="attribute.type === 'Object'"
         :attribute="attribute"
         :component="component"
         :plugin="plugin"
@@ -53,15 +54,8 @@
         :current-error="currentError"
         @update:attribute-value="updateAttributeValue"
       />
-    </q-item>
-    <!-- Attributes Object -->
-    <q-item
-      v-for="attribute in data.localAttributes.filter(({ type }) => type === 'Object')"
-      :key="attribute.name"
-      class="q-pa-none"
-      dense
-    >
-      <object-input
+      <array-of-objects-input
+        v-else
         :attribute="attribute"
         :component="component"
         :plugin="plugin"
